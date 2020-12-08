@@ -145,6 +145,8 @@ class MySQLCRUDRowReader<K : CodingKey>: KeyedDecodingContainerProtocol {
 				throw CRUDDecoderError("Unsupported type: \(type) for key: \(key.stringValue)")
 			}
 			return try JSONDecoder().decode(type, from: data)
+		case .wrapped:
+			fatalError("Unsupported wrapped type")
 		}
 	}
 	func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
@@ -329,6 +331,8 @@ class MySQLGenDelegate: SQLGenDelegate {
 				typeName = "longtext"
 			case .codable:
 				typeName = "json"
+			case .wrapped:
+				fatalError("Unsupported wrapped type")
 			}
 		}
 		let addendum: String
@@ -463,6 +467,15 @@ class MySQLStmtExeDelegate: SQLExeDelegate {
 			statement.bindParam(d)
 		case .sblob(let b):
 			statement.bindParam(b)
+		case .data(let b):
+			b.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+				let ptr = bytes.baseAddress?.assumingMemoryBound(to: Int8.self)
+				if let ptr = ptr {
+					statement.bindParam(ptr, length: bytes.count)
+				} else {
+					statement.bindParam([] as [Int8])
+				}
+			}
 		}
 	}
 }

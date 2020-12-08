@@ -1,4 +1,4 @@
-// swift-tools-version:4.2
+// swift-tools-version:5.1
 //
 //  Package.swift
 //  Perfect-MariaDB
@@ -22,13 +22,16 @@ import PackageDescription
 
 let package = Package(
     name: "MariaDB",
+	platforms: [
+		.macOS(.v10_15),
+	],
     products: [
         .library(
             name: "MariaDB",
             targets: ["MariaDB"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/PerfectlySoft/Perfect-CRUD.git", from: "1.2.3")
+		.package(url: "https://github.com/Aranatha/Perfect-CRUD.git", .branch("master"))
     ],
     targets: [
         .systemLibrary(name: "mariadbclient",
