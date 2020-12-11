@@ -702,7 +702,7 @@ public final class MySQLStmt {
 					return nil
 				}
 				let s = UTF8Encoding.failableEncode(generator: GenerateFromPointer(from: raw, count: length))
-				return s ?? Data(bytes: UnsafeRawPointer(raw), count: length)
+				return s ?? Array(UnsafeBufferPointer(start: raw, count: length))
 			case .null:
 				return nil
 			}

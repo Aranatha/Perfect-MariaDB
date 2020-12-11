@@ -123,8 +123,13 @@ class MySQLCRUDRowReader<K : CodingKey>: KeyedDecodingContainerProtocol {
 			let ret: [Int8] = ((val as? [UInt8]) ?? []).map { Int8($0) }
 			return ret as! T
 		case .data:
-			let bytes: [UInt8] = (val as? [UInt8]) ?? []
-			return Data(bytes: bytes) as! T
+			if let bytes: [UInt8] = val as? [UInt8] {
+				return Data(bytes) as! T
+			} else if let str = val as? String {
+				return str.data(using: .utf8) as! T
+			} else {
+				return Data() as! T
+			}
 		case .uuid:
 			guard let str = val as? String, let uuid = UUID(uuidString: str) else {
 				throw CRUDDecoderError("Invalid UUID string \(String(describing: val)).")
