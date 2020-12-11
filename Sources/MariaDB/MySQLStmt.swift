@@ -701,8 +701,8 @@ public final class MySQLStmt {
 				guard res == 0 else {
 					return nil
 				}
-				let s = UTF8Encoding.encode(generator: GenerateFromPointer(from: raw, count: length))
-				return s
+				let s = UTF8Encoding.failableEncode(generator: GenerateFromPointer(from: raw, count: length))
+				return s ?? Data(bytes: UnsafeRawPointer(raw), count: length)
 			case .null:
 				return nil
 			}

@@ -72,6 +72,25 @@ struct Encoding {
 		} while !finished
 		return encodedString
 	}
+	static func failableEncode<D : UnicodeCodec, G : IteratorProtocol>(codec inCodec: D, generator: G) -> String? where G.Element == D.CodeUnit {
+		var encodedString = ""
+		var finished: Bool = false
+		var mutableDecoder = inCodec
+		var mutableGenerator = generator
+		repeat {
+			let decodingResult = mutableDecoder.decode(&mutableGenerator)
+			switch decodingResult {
+			case .scalarValue(let char):
+				encodedString.append(String(char))
+			case .emptyInput:
+				finished = true
+				/* ignore errors and unexpected values */
+			case .error:
+				return nil
+			}
+		} while !finished
+		return encodedString
+	}
 }
 
 /// Utility wrapper permitting a UTF-8 character generator to encode a String. Also permits a String to be converted into a UTF-8 byte array.
@@ -80,10 +99,16 @@ struct UTF8Encoding {
 	static func encode<G : IteratorProtocol>(generator gen: G) -> String where G.Element == UTF8.CodeUnit {
 		return Encoding.encode(codec: UTF8(), generator: gen)
 	}
+	static func failableEncode<G : IteratorProtocol>(generator gen: G) -> String? where G.Element == UTF8.CodeUnit {
+		return Encoding.failableEncode(codec: UTF8(), generator: gen)
+	}
 
 	/// Use a character sequence to create a String.
 	static func encode<S : Sequence>(bytes byts: S) -> String where S.Iterator.Element == UTF8.CodeUnit {
 		return encode(generator: byts.makeIterator())
+	}
+	static func failableEncode<S : Sequence>(bytes byts: S) -> String? where S.Iterator.Element == UTF8.CodeUnit {
+		return failableEncode(generator: byts.makeIterator())
 	}
 
 	/// Decode a String into an array of UInt8.
